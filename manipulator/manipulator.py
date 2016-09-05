@@ -37,7 +37,7 @@ class Manipulator(object):
             'dest': 'https%3A%2F%2Fwww.reddit.com%2F'
         }
         self.login_url = 'https://www.reddit.com/api/login/'
-        self.vote_url = 'https://www.reddit.com/api/vote'
+        self.report_url = 'https://www.reddit.com/api/report'
         self.tor_cmd = tor_cmd
         self._set_socket()
         self.anonymize()
@@ -58,11 +58,14 @@ class Manipulator(object):
         while True:
             r = cls.session.post(url, headers=cls.hdrs, data=cls.login_payload)
             if r.status_code != 200:
+                cls.pretty_print.print_bad("Logging in returned the status code: {}".format(r.status_code))
                 continue
             if r.json()['json']['errors']:
-                raise Exception(r.json()['json']['errors'])
+                cls.pretty_print.print_bad("Logging in json errorse: {}".format(r.json()['json']['errors']))
+
             cls.modhash = r.json()['json']['data']['modhash']
-            return
+            cls.pretty_print.print_good("Logged in successfully")
+            return        
 
     def logout(cls):
         # Destroy the session for the logged in user
@@ -92,7 +95,28 @@ class Manipulator(object):
         socket.socket = socks.socksocket
         
         cls.pretty_print.print_good("Set Socket Successfully")
+
+    def report(cls, postid, subreddit, reason):
+        payload = {
+            'thing_id': postid,
+            'reason': "other",
+            'other_reason': reason,
+            'id': "#report-action-form",
+            'r': subreddit,
+            'uh': cls.modhash,
+            'renderstyle': "html"
+        }
+        while True:
+            r = cls.session.post(cls.report_url, headers=cls.hdrs, data=payload)
+            
+            if r.status_code != 200:
+                continue
+            if '"success": true' in r.text:
+                cls.pretty_print.print_good("Post: {} Reported successfully".format(postid))
+                return
+            else:
+                raise Exception('Voting failed. Might be the ID')
         
 
     def test(cls):
-        cls.pretty_print.print_good("IP Adress: {}".format(requests.get('http://icanhazip.com').text))
+        cls.pretty_print.print_good("IP Address: {}".format(requests.get('http://icanhazip.com').text).replace('\n',''))
