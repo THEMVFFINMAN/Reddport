@@ -6,7 +6,7 @@ I've never seen how the Reddit admins respond to report abuse so this will be in
 ## TODO
 
 - Actually implement reporting correctly. This will mean having to create a subreddit in order to test the reporting function. 
-- 
+- Fix shadowban checking
 
 
 ## Changes from Drownvote
