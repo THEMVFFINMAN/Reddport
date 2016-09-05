@@ -1,0 +1,4 @@
+colorama
+pysocks
+requests
+fake-useragent
